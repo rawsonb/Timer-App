@@ -5,6 +5,27 @@
 
 using namespace std;
 
+bool is_num(string string)
+{
+    for(int i = 0; i < string.length(); i++){
+        if (!isdigit(string[i])){
+            return false;
+        }
+    }
+    return true;
+}
+
+string get_new_time(int current)
+{
+    string r;
+    cout << "Please input the new clock time in seconds(currently: " << current << ")\n>";
+    getline(cin, r);
+    if (!is_num(r)){
+        get_new_time(current);
+    }
+    return r;
+}
+
 class Clock 
 {
     int time;
@@ -42,8 +63,40 @@ void Clock::set_data(int seconds, string clockName)
     name = clockName;
 }
 
+class ClockData
+{
+    Clock clocks [5];
+    int maxClocks = 5;
 
-void list_clocks(Clock clocks[], int maxClocks)
+    public:
+
+    void list_clocks();
+    int get_active_clocks();
+    void set_clock(int index, int seconds, string name);
+    void run_clock(string clockName);
+    int find_clock(string clockName);
+    void edit_clock(string clockName);
+};
+
+void ClockData::edit_clock(string clockName){
+    int clockIndex = find_clock(clockName);
+    if (clockIndex == -1){
+        cout << "Invalid name. Use \"l\" to list clocks.";
+    } else{
+    string newName;
+        string newTime = get_new_time(clocks[clockIndex].get_time());
+    cout << "Please input the new clock name(currently: " << clocks[clockIndex].get_name() << ")\n>";
+    getline(cin, newName);
+    clocks[clockIndex].set_data(stoi(newTime), newName);
+    }
+}
+
+void ClockData::set_clock(int index, int seconds, string name)
+{
+    clocks[index].set_data(seconds,name);
+}
+
+void ClockData::list_clocks()
 {
     cout << "\n\t Clocks\n------------------------\n";
     for(int i = 0; i < maxClocks; i++){
@@ -55,7 +108,7 @@ void list_clocks(Clock clocks[], int maxClocks)
 }
 
 
-int get_active_clocks(Clock clocks[], int maxClocks)
+int ClockData::get_active_clocks()
 {
     int activeClocks = 0;
     for(int i = 0; i < maxClocks; i++){
@@ -66,12 +119,12 @@ int get_active_clocks(Clock clocks[], int maxClocks)
     return activeClocks;
 }
 
-void show_main_menu(Clock clocks[], int maxClocks)
+void show_main_menu(ClockData clocks)
 {
-    cout << "\nNumber of clocks: " << get_active_clocks(clocks, maxClocks) << "" <<"\nUse \"l\" to list clocks.\nUse \"s <clock>\" to start a clock.\nUse \"e <clock>\" to edit a clock.";
+    cout << "\nNumber of clocks: " << clocks.get_active_clocks() << "" <<"\nUse \"l\" to list clocks.\nUse \"s <clock>\" to start a clock.\nUse \"e <clock>\" to edit a clock.";
 }
 
-int find_clock(Clock clocks[], int maxClocks, string clockName)
+int ClockData::find_clock(string clockName)
 {
     for(int i = 0; i < maxClocks; i++){
         if (clocks[i].get_active()){
@@ -83,12 +136,13 @@ int find_clock(Clock clocks[], int maxClocks, string clockName)
     return -1;
 }
 
-void run_clock(Clock clocks[], int maxClocks, string clockName)
+void ClockData::run_clock(string clockName)
 {
-    int clockIndex = find_clock(clocks, maxClocks, clockName);
+    int clockIndex = find_clock(clockName);
     if (clockIndex == -1){
         cout << "Invalid name. Use \"l\" to list clocks.";
     } else{
+        cout << "|                   |\n";
         Clock clock = clocks[clockIndex];
         double sleepTime = clock.get_time() * 4;
         int lastBar = 0;
@@ -116,35 +170,40 @@ void run_clock(Clock clocks[], int maxClocks, string clockName)
     }
 }
 
-void process_input(Clock clocks[], int maxClocks)
+void process_input(ClockData clocks)
 {
     cout << "\n>";
     string input;
     getline(cin, input);
     if(input == "l"){
-        list_clocks(clocks, maxClocks);
+        clocks.list_clocks();
     } else if (input[0] == 's'){
         if (input[1] == ' '){
-            run_clock(clocks, maxClocks, input.substr(2));
+            clocks.run_clock(input.substr(2));
+        } else{
+            cout << "\nThis command requires a clock name.\n";
         }
     } else if (input == "c"){
-        show_main_menu(clocks,maxClocks);
+        show_main_menu(clocks);
+    } else if (input[0] == 'e'){
+        if (input[1] == ' '){
+            clocks.edit_clock(input.substr(2));
+        } else{
+            cout << "\nThis command requires a clock name.\n";
+        }
     }
     cout << "\nUse \"c\" to see commands.";
-    process_input(clocks, maxClocks);
+    process_input(clocks);
 }
 
 int main()
 {
-    Clock clocks [5];
+    ClockData clocks;
 
-    clocks[1].set_data(5, "clocky");
-    clocks[2].set_data(3, "clocker");
-    clocks[4].set_data(10, "clocks");
-    clocks[3].set_data(25, "clook");
+    clocks.set_clock(1,5,"clocky");
 
-    show_main_menu(clocks, sizeof(clocks)/sizeof(clocks[0]));
-    process_input(clocks, sizeof(clocks)/sizeof(clocks[0]));
+    show_main_menu(clocks);
+    process_input(clocks);
     cout << "\n";
     return 0;
 }
