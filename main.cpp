@@ -2,6 +2,7 @@
 #include <cmath>
 #include <chrono>
 #include <thread>
+#include <fstream>
 
 using namespace std;
 
@@ -21,6 +22,7 @@ string get_new_time(int current)
     cout << "Please input the new clock time in seconds(currently: " << current << ")\n>";
     getline(cin, r);
     if (!is_num(r)){
+        cout << "Clock time must be a number.\n";
         get_new_time(current);
     }
     return r;
@@ -142,7 +144,7 @@ void ClockData::run_clock(string clockName)
     if (clockIndex == -1){
         cout << "Invalid name. Use \"l\" to list clocks.";
     } else{
-        cout << "|                   |\n";
+        cout << "|                      |\n";
         Clock clock = clocks[clockIndex];
         double sleepTime = clock.get_time() * 4;
         int lastBar = 0;
@@ -151,17 +153,17 @@ void ClockData::run_clock(string clockName)
         for(int i = 0; i < sleepTime; i++){
             sleepPercent = i/sleepTime;
 
-            if(20 * sleepPercent-1 > lastBar) {progressBar = "|";
-            for(int j = 20*sleepPercent; j > 0; j--){
+            if(23 * sleepPercent-1 > lastBar) {progressBar = "|";
+            for(int j = 23*sleepPercent; j > 0; j--){
                 progressBar.insert(1,"#");
             }
-            for(int j = 20 - progressBar.length(); j > 0; j--){
+            for(int j = 23 - progressBar.length(); j > 0; j--){
                 progressBar.append(" ");
             }
             progressBar.append("|");
 
             cout << progressBar << "\n";
-            lastBar = 20*sleepPercent;
+            lastBar = 23*sleepPercent;
             }
 
             this_thread::sleep_until(chrono::system_clock::now() + 0.25s);
@@ -196,11 +198,43 @@ void process_input(ClockData clocks)
     process_input(clocks);
 }
 
+string toComma(string inStr, int commas)
+{
+    string rdTxt = "";
+    int index = 0;
+    int pastCommas = 0;
+    while(pastCommas < commas){
+        while(inStr[index] != ',' && index < inStr.length()){
+            index++;
+        }
+        pastCommas++;
+        index++;
+    }
+    while(inStr[index] != ',' && index < inStr.length()){
+        rdTxt.push_back(inStr[index]);
+        index++;
+    }
+    return rdTxt;
+}
+
 int main()
 {
     ClockData clocks;
+    fstream clockFile("clocks.txt");
 
-    clocks.set_clock(1,5,"clocky");
+    string lnTxt;
+
+    int i = 0;
+
+    int clockTime;
+
+    while(getline(clockFile, lnTxt) && i < 5)
+    {
+        
+        clockTime = stoi(toComma(lnTxt,0));
+        clocks.set_clock(i,clockTime,toComma(lnTxt,1));
+        i++;
+    }
 
     show_main_menu(clocks);
     process_input(clocks);
